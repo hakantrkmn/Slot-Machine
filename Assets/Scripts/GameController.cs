@@ -8,16 +8,25 @@ using Random = UnityEngine.Random;
 public class GameController : MonoBehaviour
 {
     public List<ColumnController> columns;
-    public int[,] gameMatrix = new int[3,5];
+    public int[,] gameMatrix = new int[3, 5];
 
 
     private void OnEnable()
     {
         EventManager.GetGameCanvasHeight += GetGameCanvasHeight;
+        EventManager.StopSlot += StopSlot;
         EventManager.SpinButton += SpinButton;
+
     }
 
-    private float GetGameCanvasHeight()
+    private void SpinButton()
+    {
+        Sequence spin = DOTween.Sequence();
+        spin.AppendInterval(2);
+        spin.AppendCallback((() => { EventManager.StopSlot(); }));
+    }
+
+    private float GetGameCanvasHeight()//oyun panelinin yüksekliğini döndürüyorum
     {
         return GetComponent<RectTransform>().rect.height;
     }
@@ -25,31 +34,31 @@ public class GameController : MonoBehaviour
     private void OnDisable()
     {
         EventManager.GetGameCanvasHeight -= GetGameCanvasHeight;
+        EventManager.StopSlot -= StopSlot;
         EventManager.SpinButton -= SpinButton;
     }
 
-    private void SpinButton()
-    {
-        Sequence spin = DOTween.Sequence();
+    private void StopSlot()
+    { // spin durdurulduysa önce ilk 2 column u durduruyorum. diğerlerinin hızını arttırıyorum. biraz bekleyip
+        // diğer columnları durduruyorum. aralarına .3f gibi bir bekleme süresi koydum
+        
+        Sequence stopSlot = DOTween.Sequence();
+
         for (int i = 0; i < 2; i++)
         {
             var temp = columns[i];
-            spin.AppendCallback(()=> { temp.stopColumn = true; });
-            spin.AppendInterval(.5f);
-            
-
-
+            stopSlot.AppendCallback(() => { temp.stopColumn = true; });
+            stopSlot.AppendInterval(.5f);
         }
-        spin.AppendCallback(()=> { EventManager.SpeedUpColumns(); });
-        spin.AppendInterval(2f);
+
+        stopSlot.AppendCallback(() => { EventManager.SpeedUpColumns(); });
+        stopSlot.AppendInterval(1f);
         for (int i = 2; i < columns.Count; i++)
         {
             var temp = columns[i];
-            spin.AppendCallback(()=> { temp.stopColumn = true; });
-            spin.AppendInterval(.2f);
-
+            stopSlot.AppendCallback(() => { temp.stopColumn = true; });
+            stopSlot.AppendInterval(.3f);
         }
-        
     }
 
     private void OnValidate()
@@ -60,10 +69,12 @@ public class GameController : MonoBehaviour
         {
             columns.Add(column);
         }
+
         RandomMatrix();
     }
 
-    public void RandomMatrix()
+    // oyun başında random matrix oluşturma
+    void RandomMatrix()
     {
         for (int i = 0; i < gameMatrix.GetLength(0); i++)
         {
@@ -76,42 +87,22 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
+        SetColumnsNumber();
+    }
+
+    
+    //columnlara spin sonunda durması gereken numaraları ekliyorum
+    void SetColumnsNumber()
+    {
         for (int i = 0; i < columns.Count; i++)
         {
             for (int j = 0; j < gameMatrix.GetLength(0); j++)
             {
                 columns[i].columnNumbers.Add(gameMatrix[j, i]);
             }
-            
-        }
-
-        
-    }
-
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            
-        }
-        else if (Input.GetKeyDown(KeyCode.A))
-        {
-            var temp = columns[2];
-           
-            temp.stopColumn = true;           
-        }
-        else if (Input.GetKeyDown(KeyCode.S))
-        {
-            var temp = columns[3];
-           
-            temp.stopColumn = true;           
-        }
-        else if (Input.GetKeyDown(KeyCode.D))
-        {
-            var temp = columns[4];
-           
-            temp.stopColumn = true;           
         }
     }
+
+
+   
 }

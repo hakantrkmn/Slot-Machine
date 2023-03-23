@@ -15,6 +15,33 @@ public class SlotController : MonoBehaviour
         SetSlot();
     }
 
+    private void Awake()
+    {
+         slotStats.speed= EventManager.GetGameData().rotateSpeed;
+    }
+
+    private void OnEnable()
+    {
+        EventManager.SpinButton += SpinButton;
+        EventManager.SpeedUpColumns += SpeedUpColumns;
+    }
+
+    private void SpinButton()
+    {
+        slotStats.canRotate = true;
+    }
+
+    private void OnDisable()
+    {
+        EventManager.SpinButton -= SpinButton;
+        EventManager.SpeedUpColumns -= SpeedUpColumns;
+    }
+
+    private void SpeedUpColumns()
+    {
+        slotStats.speed *= 2;
+    }
+
     private void Start()
     {
         _rectTransform = GetComponent<RectTransform>();
@@ -25,14 +52,16 @@ public class SlotController : MonoBehaviour
     {
         if (slotStats.canRotate)
         {
+            // slot oyun panelinin altına indiyse ekranın en üstüne taşıyıp yeni bir numara veriyoruz.eğer durdurma
+            //aksiyonu çalıştıysa columndan gerekli numarayı atıp en üste taşıyoruz
             var screenHeight = EventManager.GetGameCanvasHeight();
             transform.position -= Vector3.up * Time.deltaTime * slotStats.speed;
             if (_rectTransform.anchoredPosition.y < -(screenHeight))
             {
-                _rectTransform.anchoredPosition = new Vector2(
-                    _rectTransform.anchoredPosition.x,
-                    (screenHeight / 3));
+                _rectTransform.anchoredPosition = new Vector2(_rectTransform.anchoredPosition.x,(screenHeight / 3));
+               
                 EventManager.RefreshSlot(this, GetComponentInParent<ColumnController>());
+                
                 if (_columnController.stopColumn)
                 {
                     var lastNumber = _columnController.columnNumbers.Last();

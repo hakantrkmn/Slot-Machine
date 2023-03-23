@@ -22,6 +22,8 @@ public class ColumnController : MonoBehaviour
         EventManager.RefreshSlot -= RefreshSlot;
     }
 
+    
+    //slot ekranın altına gittiğinde üste taşıyınca, listede de en üste çekiyorum düzenli oluyor
     private void RefreshSlot(SlotController slot, ColumnController column)
     {
         if (column==this)
@@ -49,21 +51,21 @@ public class ColumnController : MonoBehaviour
         
     }
 
-    public void SetSlot()
+    void SetSlot() // slotları ekran boyutuna göre boyutlandırıp konumu ayarlıyorum
     {
         var height = EventManager.GetGameCanvasHeight();
 
         for (int i = 0; i < slots.Count; i++)
         {
             slots[i].GetComponent<RectTransform>().sizeDelta =
-                new Vector2(slots[i].GetComponent<RectTransform>().sizeDelta.x, height / 3);
-            slots[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(0,height/3) -
-                new Vector2(slots[i].GetComponent<RectTransform>().anchoredPosition.x, i * (height/3));
+                new Vector2(slots[i].GetComponent<RectTransform>().sizeDelta.x, height / (slots.Count-1));
+            slots[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(0,height/ (slots.Count - 1)) -
+                new Vector2(slots[i].GetComponent<RectTransform>().anchoredPosition.x, i * (height/ (slots.Count - 1)));
         }
     }
 
 
-    public void StopColumn()
+    void StopColumn() // columna durma komutu geldiğinde ekrana kalan mesafeyi hesaplayıp hepsini o kadar oynatıyorum
     {
         foreach (var slot in slots)
         {
@@ -82,7 +84,6 @@ public class ColumnController : MonoBehaviour
             columnNumbers.Add(slots[i].slotStats.number);
         }
 
-       
         
     }
 }
